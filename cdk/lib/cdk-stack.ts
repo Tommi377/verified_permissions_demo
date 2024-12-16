@@ -77,12 +77,13 @@ export class CdkStack extends cdk.Stack {
         });
     }
 
-    private createBrandPolicies = (name: string, brand: string, permissions: string[]) => {
+    private createBrandPolicy = (name: string, brand: string, permissions: string[]) => {
         new Policy(this, `${name}Policy`, {
             definition: {
                 static: {
                     statement: `forbid (principal, action in [PaidArticle::Action::"ReadArticle"], resource) when
-                                { resource.brand == "hs" && ${JSON.stringify(permissions)}.contains(resource.permissionLevel)};`,
+                                { resource.brand == "hs" && principal.subscriptions.contains(${name}) &&
+                                ${JSON.stringify(permissions)}.contains(resource.permissionLevel)};`,
                     description: `${brand}: ${name}`,
                 },
             },
