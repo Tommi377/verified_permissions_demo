@@ -1,9 +1,10 @@
 import { jwtDecode } from "jwt-decode";
-import { VerifiedPermissionsClient, IsAuthorizedCommand } from "@aws-sdk/client-verifiedpermissions";
+import { VerifiedPermissions } from "@aws-sdk/client-verifiedpermissions";
 
 export const handler = async (event) => {
+    const identityToken = (event.headers?.Authorization || event.headers?.authorization).split(' ')[1];
     try {
-        const identityToken = jwtDecode(event.headers?.Authorization || event.headers?.authorization);
+        const identityTokenDecoded = jwtDecode(event.headers?.Authorization || event.headers?.authorization);
 
         if (!identityToken) {
             return {
@@ -15,64 +16,61 @@ export const handler = async (event) => {
         }
 
         const article = {
-            id: 21341241,
-            permission: "HSDigi"
+            id: "21341241",
+            brand: "hs",
+            permissionLevel: "free"
         }
 
-        // identityToken['custom:roles'].map(s => ({ "string": s }))
+        const contextMap = {
+            brand: {
+                string: "hs"
+            },
+            loggedIn: {
+                boolean: true
+            }
+        }
 
-        const client = new VerifiedPermissionsClient();
-        const authCommand = new IsAuthorizedCommand({
-            policyStoreId: "6aaosSkLzqopTLFvaFbcsJ",
-            principal: {
-                "entityType": "PaidArticles::User",
-                "entityId": identityToken.nickname
-            },
-            action: {
-                "actionType": "PaidArticles::Action",
-                "actionId": "ReadArticle"
-            },
-            resource: {
-                "entityType": "PaidArticles::Article",
-                "entityId": article.id
-            },
-            // entities: {
-            //     entityList: [
-            //         {
-            //             "identifier": {
-            //                 "entityType": "PaidArticles::User",
-            //                 "entityId": identityToken.nickname
-            //             },
-            //             "attributes": {
-            //                 "subscriptions": {
-            //                     set: []
-            //                 }
-            //             }
-            //         },
-            //         {
-            //             "identifier": {
-            //                 "entityType": "PaidArticles::Article",
-            //                 "entityId": article.id
-            //             },
-            //             "attributes": {
-            //                 "subscriptionLevel": {
-            //                     set: article.permission
-            //                 }
-            //             }
-            //         }
-            //     ]
-            // }
-        });
+        const verifiedpermissions = new VerifiedPermissions();
 
-        const resp = await client.send(authCommand);
+        const input = {
+            identityToken,
+            policyStoreId: 'Qopi333ntJsmsk3xtCUAn',
+            action: { actionType: 'PaidArticle::Action', actionId: "ReadArticle" },
+            resource: { entityType: 'PaidArticle::Article', entityId: article.id },
+            entities: {
+                entityList: [
+                    {
+                        "identifier": {
+                            "entityType": "PaidArticle::Article",
+                            "entityId": article.id
+                        },
+                        "attributes": {
+                            "permissionLevel": {
+                                "string": "paid"
+                            },
+                            "brand": {
+                                "string": "hs"
+                            }
+                        },
+                        "parents": []
+                    }
+                ]
+            },
+            context: {
+                contextMap
+            }
+        };
+
+        const authResponse = await verifiedpermissions.isAuthorizedWithToken(input);
 
         // Return the identity token in the response
         return {
             statusCode: 200,
             body: JSON.stringify({
                 message: "Identity token retrieved successfully.",
-                identityToken,
-                resp
+                resp: authResponse,
+                identityTokenDecoded,
+                input
             }),
         };
     } catch (error) {
@@ -83,6 +81,7 @@ export const handler = async (event) => {
                 message: "An error occurred while processing the request.",
                 error: error.message,
                 dump: JSON.stringify(error),
+                identityToken,
             }),
         };
     }
