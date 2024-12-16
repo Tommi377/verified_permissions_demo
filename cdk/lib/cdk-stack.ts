@@ -4,6 +4,10 @@ import { Construct } from 'constructs';
 
 export class CdkStack extends cdk.Stack {
     readonly policyStore: PolicyStore;
+    readonly brandPolicies = [
+        { name: "HSMINI", brand: "hs", permissions: ["paid", "paidNoIndicator", "archived", "archivedPaid"] },
+        { name: "HSDIGI", brand: "hs", permissions: ["paid", "paidNoIndicator", "archived", "archivedPaid", "edition"] }
+    ]
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
@@ -34,14 +38,9 @@ export class CdkStack extends cdk.Stack {
             policyStore: this.policyStore
         });
 
-        const brandPolicies = [
-            { name: "HSMINI", brand: "hs", permissions: ["paid", "paidNoIndicator", "archived", "archivedPaid"] },
-            { name: "HSDIGI", brand: "hs", permissions: ["paid", "paidNoIndicator", "archived", "archivedPaid", "edition"] }
-        ]
-
         this.createDefaultPolicies();
-        brandPolicies.forEach(sub => {
-            this.createBrandPolicies(sub.name, sub.brand, sub.permissions);
+        this.brandPolicies.forEach(sub => {
+            this.createBrandPolicy(sub.name, sub.brand, sub.permissions);
         });
     }
 
