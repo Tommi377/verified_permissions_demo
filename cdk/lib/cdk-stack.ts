@@ -2,9 +2,9 @@ import * as cdk from 'aws-cdk-lib';
 import { IdentitySource, Policy, PolicyStore, ValidationSettingsMode } from '@cdklabs/cdk-verified-permissions';
 import { Construct } from 'constructs';
 
-export class AVPCdkStack extends cdk.Stack {
+export class CdkStack extends cdk.Stack {
     readonly policyStore: PolicyStore;
-    readonly subscriptionPolicies = [
+    readonly brandPolicies = [
         { name: "HSMINI", brand: "hs", permissions: ["paid", "paidNoIndicator", "archived", "archivedPaid"] },
         { name: "HSDIGI", brand: "hs", permissions: ["paid", "paidNoIndicator", "archived", "archivedPaid", "edition"] }
     ]
@@ -39,8 +39,8 @@ export class AVPCdkStack extends cdk.Stack {
         });
 
         this.createDefaultPolicies();
-        this.subscriptionPolicies.forEach(sub => {
-            this.createSubscriptionPolicy(sub.name, sub.brand, sub.permissions);
+        this.brandPolicies.forEach(sub => {
+            this.createBrandPolicy(sub.name, sub.brand, sub.permissions);
         });
     }
 
@@ -55,7 +55,7 @@ export class AVPCdkStack extends cdk.Stack {
             },
             policyStore: this.policyStore,
         });
-        new Policy(this, "FreeArticlePolicy", {
+        new Policy(this, "FreePolicy", {
             definition: {
                 static: {
                     statement: `permit (principal, action in [PaidArticle::Action::"ReadArticle"], resource) when {
@@ -76,12 +76,12 @@ export class AVPCdkStack extends cdk.Stack {
         });
     }
 
-    private createSubscriptionPolicy = (name: string, brand: string, permissions: string[]) => {
+    private createBrandPolicy = (name: string, brand: string, permissions: string[]) => {
         new Policy(this, `${name}Policy`, {
             definition: {
                 static: {
-                    statement: `permit (principal, action in [PaidArticle::Action::"ReadArticle"], resource) when
-                                { resource.brand == "${brand}" && principal.subscriptions.contains(${name}) &&
+                    statement: `forbid (principal, action in [PaidArticle::Action::"ReadArticle"], resource) when
+                                { resource.brand == "hs" && principal.subscriptions.contains(${name}) &&
                                 ${JSON.stringify(permissions)}.contains(resource.permissionLevel)};`,
                     description: `${brand}: ${name}`,
                 },
