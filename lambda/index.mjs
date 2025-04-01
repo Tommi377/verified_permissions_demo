@@ -1,9 +1,12 @@
 import { jwtDecode } from "jwt-decode";
 import { VerifiedPermissions } from "@aws-sdk/client-verifiedpermissions";
 
+const getPolicyStoreId = () => 'Qopi333ntJsmsk3xtCUAn'
+
 export const handler = async (event) => {
     const identityToken = (event.headers?.Authorization || event.headers?.authorization).split(' ')[1];
     try {
+        const policyStoreId = getPolicyStoreId();
         const identityTokenDecoded = jwtDecode(event.headers?.Authorization || event.headers?.authorization);
 
         if (!identityToken) {
@@ -34,7 +37,7 @@ export const handler = async (event) => {
 
         const input = {
             identityToken,
-            policyStoreId: 'Qopi333ntJsmsk3xtCUAn',
+            policyStoreId,
             action: { actionType: 'PaidArticle::Action', actionId: "ReadArticle" },
             resource: { entityType: 'PaidArticle::Article', entityId: article.id },
             entities: {
@@ -46,10 +49,10 @@ export const handler = async (event) => {
                         },
                         "attributes": {
                             "permissionLevel": {
-                                "string": "paid"
+                                "string": article.permissionLevel
                             },
                             "brand": {
-                                "string": "hs"
+                                "string": article.brand
                             }
                         },
                         "parents": []
