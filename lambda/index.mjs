@@ -1,7 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 import { VerifiedPermissions } from "@aws-sdk/client-verifiedpermissions";
 
-const getPolicyStoreId = () => 'Qopi333ntJsmsk3xtCUAn'
+const getPolicyStoreId = () => 'RmQMwSaavEdyem4d5u3cam'
 
 export const handler = async (event) => {
     const policyStoreId = getPolicyStoreId();

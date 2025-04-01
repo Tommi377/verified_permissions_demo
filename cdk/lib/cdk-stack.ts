@@ -98,7 +98,7 @@ export class AVPCdkStack extends cdk.Stack {
                     shape: {
                         type: "Record",
                         attributes: {
-                            custom_roles: {
+                            subscriptions: {
                                 required: true,
                                 type: "Set",
                                 element: {
