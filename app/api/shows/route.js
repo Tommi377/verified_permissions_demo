@@ -16,7 +16,7 @@ export const GET = withApiAuthRequired(async function shows(req) {
         });
         const shows = await response.json();
 
-        return NextResponse.json(shows, res);
+        return NextResponse.json({ accessToken }, res);
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: error.status || 500 });
     }

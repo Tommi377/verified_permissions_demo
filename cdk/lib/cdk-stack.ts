@@ -21,7 +21,7 @@ export class AVPCdkStack extends cdk.Stack {
         this.policyStore = new PolicyStore(this, "PaidArticlesPolicyStore", {
             schema: cedarSchema,
             validationSettings: validationSettingsStrict,
-            description: "PolicyStore description"
+            description: "Paid Articles API Policy Store"
         });
         new IdentitySource(this, "IdentitySource", {
             configuration: {
