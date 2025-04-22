@@ -6,8 +6,19 @@ const getPolicyStoreId = () => 'RmQMwSaavEdyem4d5u3cam'
 export const handler = async (event) => {
     const policyStoreId = getPolicyStoreId();
     const identityToken = (event.headers?.Authorization || event.headers?.authorization).split(' ')[1];
+
+    const pathValues = event.path.split('/').filter(s => s.length > 0);
+    if (pathValues.length < 2) {
+      throw new PathIncorrectError(
+        `Incorrect path parameters: ${pathValues.join('')}`,
+      );
+    }
+  
+    const productId = pathValues[pathValues.length - 2];
+    const articleId = pathValues[pathValues.length - 1];
+
     try {
-        const identityTokenDecoded = jwtDecode(event.headers?.Authorization || event.headers?.authorization);
+        jwtDecode(event.headers?.Authorization || event.headers?.authorization);
 
         if (!identityToken) {
             return {
@@ -18,15 +29,29 @@ export const handler = async (event) => {
             };
         }
 
-        const article = {
-            id: "21341241",
-            brand: "hs",
-            permissionLevel: "free"
-        }
+        const articles = {
+            articleFree: {
+                id: "21341241",
+                brand: "hs",
+                permissionLevel: "free"
+            },
+            articlePaid: {
+                id: "21341242",
+                brand: "hs",
+                permissionLevel: "paid"
+            },
+            articlePaidIS: {
+                id: "21341243",
+                brand: "is",
+                permissionLevel: "paid"
+            }
+        };
+
+        const article = articles[articleId];
 
         const contextMap = {
             brand: {
-                string: "hs"
+                string: productId
             },
             loggedIn: {
                 boolean: true
@@ -70,10 +95,8 @@ export const handler = async (event) => {
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: "Identity token retrieved successfully.",
+                message: "Evaluation: " + authResponse.decision,
                 resp: authResponse,
-                identityTokenDecoded,
-                input
             }),
         };
     } catch (error) {
@@ -83,8 +106,6 @@ export const handler = async (event) => {
             body: JSON.stringify({
                 message: "An error occurred while processing the request.",
                 error: error.message,
-                dump: JSON.stringify(error),
-                identityToken,
             }),
         };
     }
